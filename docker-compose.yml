@@ -1,0 +1,45 @@
+version: '3.8'
+
+# Docker Compose for Self-Hosted Nitter + Redis
+# This provides the RSS feed source for the bot
+
+services:
+  nitter:
+    image: zedeus/nitter:latest
+    container_name: nitter
+    restart: unless-stopped
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./nitter.conf:/src/nitter.conf:ro
+    depends_on:
+      - nitter-redis
+    environment:
+      - NITTER_HOST=0.0.0.0
+      - NITTER_PORT=8080
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  nitter-redis:
+    image: redis:7-alpine
+    container_name: nitter-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - nitter-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nitter-redis-data:
+
+networks:
+  default:
+    name: nitter-network
