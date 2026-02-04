@@ -138,8 +138,27 @@ async function runProcessingCycle(
       discordFailed: result.discordFailed,
       errorCount: result.errors.length,
     }, 'Processing cycle completed');
+
+    // Send alert if there were errors during processing
+    if (result.errors.length > 0 && discordClient) {
+      const errorSummary = result.errors.slice(0, 5).join('\n• ');
+      const moreErrors = result.errors.length > 5 ? `\n...and ${result.errors.length - 5} more` : '';
+      await discordClient.sendAlert(
+        'Processing Errors',
+        `Encountered ${result.errors.length} error(s) during processing:\n\n• ${errorSummary}${moreErrors}`
+      );
+    }
   } catch (err) {
     logger.error({ err }, 'Processing cycle failed with unhandled error');
+    
+    // Send alert for unhandled errors
+    if (discordClient) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      await discordClient.sendAlert(
+        'Processing Cycle Failed',
+        `The bot encountered an unhandled error:\n\n\`\`\`\n${errorMessage}\n\`\`\``
+      );
+    }
     // Don't crash - let cron retry on next schedule
   } finally {
     isProcessing = false;

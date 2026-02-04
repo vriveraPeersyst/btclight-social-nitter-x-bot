@@ -34,7 +34,7 @@ export class DiscordClient {
    * Set up Discord client event handlers
    */
   private setupEventHandlers(): void {
-    this.client.on('ready', () => {
+    this.client.on('clientReady', () => {
       this.isReady = true;
       this.logger.info({
         botTag: this.client.user?.tag,
@@ -97,7 +97,7 @@ export class DiscordClient {
         reject(new Error('Discord client ready timeout'));
       }, 30000);
 
-      this.client.once('ready', () => {
+      this.client.once('clientReady', () => {
         clearTimeout(timeout);
         resolve();
       });

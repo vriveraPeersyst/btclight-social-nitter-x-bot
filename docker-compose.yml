@@ -12,6 +12,7 @@ services:
       - "8180:8080"
     volumes:
       - ./nitter.conf:/src/nitter.conf:ro
+      - ./sessions.jsonl:/src/sessions.jsonl:ro
     depends_on:
       - nitter-redis
     environment:
